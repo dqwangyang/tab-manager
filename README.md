@@ -34,7 +34,7 @@
 
 ## 🖼️ 截图 | Screenshots
 
-*(运行应用后可见完整界面)*
+![Tab Manager 截图](screenshot.png)
 
 ## 📦 下载 | Download
 
