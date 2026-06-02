@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; frame-src *; img-src * data:; connect-src *;">
+    <title>Tab Manager - 页签管理器</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- 左侧页签栏 -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <!-- 标题已移除，保留拖拽区域 -->
+            </div>
+
+            <div class="sidebar-toolbar">
+                <button id="addTabBtn" class="toolbar-btn" title="新建页签">
+                    <span class="icon">➕</span>
+                    <span class="btn-text">页签</span>
+                </button>
+                <button id="addFolderBtn" class="toolbar-btn" title="新建文件夹">
+                    <span class="icon">📁</span>
+                    <span class="btn-text">文件夹</span>
+                </button>
+            </div>
+
+            <div class="sidebar-toolbar secondary">
+                <button id="importBtn" class="toolbar-btn" title="导入">
+                    <span class="icon">📥</span>
+                </button>
+                <button id="exportBtn" class="toolbar-btn" title="导出">
+                    <span class="icon">📤</span>
+                </button>
+            </div>
+
+            <div class="sidebar-search">
+                <input type="text" id="searchInput" placeholder="🔍 搜索页签..." />
+            </div>
+
+            <div class="tab-list" id="tabList">
+                <!-- 页签列表动态生成 -->
+            </div>
+
+            <button id="sidebarToggle" class="sidebar-toggle" title="收起侧边栏">
+                <span class="toggle-icon">◀</span>
+            </button>
+        </aside>
+
+        <!-- 右侧内容区 -->
+        <main class="content-area">
+            <div id="emptyState" class="empty-state">
+                <div class="empty-icon">📋</div>
+                <h2>欢迎使用页签管理器</h2>
+                <p>点击左侧「新建」按钮添加您的第一个页签</p>
+            </div>
+
+            <!-- 内容展示区 - webview 动态创建 -->
+            <div id="webviewContainer" class="webview-container">
+                <!-- 每个 tab 对应一个 webview，动态创建 -->
+            </div>
+        </main>
+    </div>
+
+    <!-- 右键菜单 -->
+    <div id="contextMenu" class="context-menu hidden">
+        <div class="context-menu-item" data-action="add-tab-to-folder">
+            <span class="menu-icon">➕</span>
+            <span class="menu-text">新建页签到此文件夹</span>
+        </div>
+        <div class="context-menu-item" data-action="rename-folder">
+            <span class="menu-icon">✏️</span>
+            <span class="menu-text">重命名文件夹</span>
+        </div>
+        <div class="context-menu-item" data-action="edit">
+            <span class="menu-icon">✏️</span>
+            <span class="menu-text">编辑</span>
+        </div>
+        <div class="context-menu-divider"></div>
+        <div class="context-menu-item danger" data-action="delete-folder">
+            <span class="menu-icon">🗑️</span>
+            <span class="menu-text">删除文件夹</span>
+        </div>
+        <div class="context-menu-item danger" data-action="delete">
+            <span class="menu-icon">🗑️</span>
+            <span class="menu-text">删除</span>
+        </div>
+    </div>
+
+    <!-- 编辑弹窗 -->
+    <div id="editModal" class="modal hidden">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>编辑页签</h3>
+                <button id="closeModalBtn" class="close-btn">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>页签名称</label>
+                    <input type="text" id="tabNameInput" class="form-input" placeholder="输入页签名称" />
+                </div>
+                <div class="form-group">
+                    <label>网址</label>
+                    <input type="url" id="urlInput" class="form-input" placeholder="https://example.com" />
+                </div>
+                
+                <div class="form-group">
+                    <label>备注</label>
+                    <input type="text" id="remarkInput" class="form-input" placeholder="添加备注说明（可选）" />
+                </div>
+                
+                <!-- 登录凭据 -->
+                <div class="form-group">
+                    <label class="label-with-checkbox">
+                        <input type="checkbox" id="saveCredentialCheck" />
+                        <span>保存登录凭据</span>
+                    </label>
+                    <div id="credentialInputs" class="credential-inputs hidden">
+                        <input type="text" id="usernameInput" class="form-input" placeholder="用户名" />
+                        <input type="password" id="passwordInput" class="form-input" placeholder="密码" />
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="deleteTabBtn" class="btn btn-danger">🗑️ 删除</button>
+                <div class="modal-footer-right">
+                    <button id="cancelModalBtn" class="btn btn-secondary">取消</button>
+                    <button id="saveTabBtn" class="btn btn-primary">💾 保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 提示输入弹窗 -->
+    <div id="promptModal" class="modal hidden">
+        <div class="modal-overlay"></div>
+        <div class="modal-content modal-sm">
+            <div class="modal-header">
+                <h3 id="promptTitle">输入</h3>
+                <button id="promptCloseBtn" class="close-btn">×</button>
+            </div>
+            <div class="modal-body">
+                <input type="text" id="promptInput" class="form-input" placeholder="" />
+            </div>
+            <div class="modal-footer">
+                <div class="modal-footer-right">
+                    <button id="promptCancelBtn" class="btn btn-secondary">取消</button>
+                    <button id="promptOkBtn" class="btn btn-primary">确定</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
